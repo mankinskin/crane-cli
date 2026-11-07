@@ -568,6 +568,8 @@ fn setup_same_path_context_tools_fixture() -> SamePathContextToolsFixture {
 fn init_repo(path: &Path) {
     fs::create_dir_all(path).expect("repo dir should exist");
     run_git(path, &["init", "-b", "main"]);
+    // Fixtures assert exact bytes, independent of the host's checkout conversion.
+    run_git(path, &["config", "core.autocrlf", "false"]);
     run_git(path, &["config", "user.name", "Crane Test"]);
     run_git(path, &["config", "user.email", "crane@example.com"]);
 }
