@@ -3,6 +3,7 @@ name = "crane-cli"
 version = "0.1.0"
 edition = "2024"
 description = "Filter git history for selected source trees and transplant it into another repository"
+repository = "https://github.com/mankinskin/crane-cli"
 
 [[bin]]
 name = "crane"

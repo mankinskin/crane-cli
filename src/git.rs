@@ -1,9 +1,6 @@
 use std::{
     ffi::OsStr,
-    path::{
-        Path,
-        PathBuf,
-    },
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -44,10 +41,7 @@ impl GitRepo {
         }
     }
 
-    pub fn command<I, S>(
-        &self,
-        args: I,
-    ) -> Command
+    pub fn command<I, S>(&self, args: I) -> Command
     where
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
@@ -57,10 +51,7 @@ impl GitRepo {
         command
     }
 
-    pub fn output_text<I, S>(
-        &self,
-        args: I,
-    ) -> Result<String, CraneError>
+    pub fn output_text<I, S>(&self, args: I) -> Result<String, CraneError>
     where
         I: Clone + IntoIterator<Item = S>,
         S: AsRef<OsStr>,
@@ -72,19 +63,14 @@ impl GitRepo {
                 cwd: self.path.clone(),
                 command: format_command(args),
                 status: output.status.code(),
-                stderr: String::from_utf8_lossy(&output.stderr)
-                    .trim()
-                    .to_string(),
+                stderr: String::from_utf8_lossy(&output.stderr).trim().to_string(),
             });
         }
 
         String::from_utf8(output.stdout).map_err(CraneError::Utf8)
     }
 
-    pub fn run<I, S>(
-        &self,
-        args: I,
-    ) -> Result<(), CraneError>
+    pub fn run<I, S>(&self, args: I) -> Result<(), CraneError>
     where
         I: Clone + IntoIterator<Item = S>,
         S: AsRef<OsStr>,
@@ -103,10 +89,7 @@ impl GitRepo {
         }
     }
 
-    pub fn rev_parse(
-        &self,
-        spec: &str,
-    ) -> Result<String, CraneError> {
+    pub fn rev_parse(&self, spec: &str) -> Result<String, CraneError> {
         Ok(self
             .output_text(["rev-parse", spec])?
             .lines()
@@ -140,18 +123,11 @@ impl GitRepo {
         Ok(self.output_text(["status", "--short"])?.trim().is_empty())
     }
 
-    pub fn checkout(
-        &self,
-        branch: &str,
-    ) -> Result<(), CraneError> {
+    pub fn checkout(&self, branch: &str) -> Result<(), CraneError> {
         self.run(["checkout", branch])
     }
 
-    pub fn merge_allow_unrelated(
-        &self,
-        branch: &str,
-        message: &str,
-    ) -> Result<(), CraneError> {
+    pub fn merge_allow_unrelated(&self, branch: &str, message: &str) -> Result<(), CraneError> {
         self.run([
             "merge",
             "--allow-unrelated-histories",
@@ -162,10 +138,7 @@ impl GitRepo {
         ])
     }
 
-    pub fn delete_ref_if_exists(
-        &self,
-        ref_name: &str,
-    ) -> Result<(), CraneError> {
+    pub fn delete_ref_if_exists(&self, ref_name: &str) -> Result<(), CraneError> {
         let status = self
             .command(["update-ref", "-d", ref_name])
             .status()

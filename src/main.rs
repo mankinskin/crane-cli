@@ -1,9 +1,6 @@
 use clap::Parser;
 
-use crane_cli::{
-    CraneCli,
-    run,
-};
+use crane_cli::{CraneCli, run};
 
 fn main() {
     let cli = CraneCli::parse();
@@ -12,6 +9,6 @@ fn main() {
         Err(error) => {
             eprintln!("{error}");
             std::process::exit(1);
-        },
+        }
     }
 }

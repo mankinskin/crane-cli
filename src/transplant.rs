@@ -1,25 +1,14 @@
 use std::{
-    io::{
-        BufReader,
-        BufWriter,
-    },
+    io::{BufReader, BufWriter},
     path::PathBuf,
     process::Stdio,
 };
 
 use crate::{
-    CraneError,
-    PathMapping,
-    TransplantArgs,
+    CraneError, PathMapping, TransplantArgs,
     cli::validate_mappings,
-    git::{
-        GitRepo,
-        normalize_branch_ref,
-    },
-    transform::{
-        TransformStats,
-        transform_export,
-    },
+    git::{GitRepo, normalize_branch_ref},
+    transform::{TransformStats, transform_export},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,10 +49,8 @@ pub fn execute(args: TransplantArgs) -> Result<TransplantOutcome, CraneError> {
                 .collect::<Vec<_>>();
             source_repo
                 .first_touching_commit(&source_commit, &source_paths)?
-                .ok_or_else(|| {
-                    CraneError::MissingPathHistory(source_paths.join(", "))
-                })?
-        },
+                .ok_or_else(|| CraneError::MissingPathHistory(source_paths.join(", ")))?
+        }
     };
 
     let anchor_parent = source_repo.rev_parse(&format!("{anchor_commit}^"));
@@ -135,8 +122,12 @@ fn import_history(
         plan.range_spec.clone(),
         "--".to_string(),
     ];
-    export_args
-        .extend(plan.mappings.iter().map(|mapping| mapping.source.clone()));
+    // Explicit pathspecs also work when the historical tree is absent at HEAD.
+    export_args.extend(
+        plan.mappings
+            .iter()
+            .map(|mapping| format!(":(literal){}", mapping.source)),
+    );
 
     let mut exporter = source_repo
         .command(export_args.clone())
@@ -155,13 +146,12 @@ fn import_history(
         .map_err(CraneError::Io)?;
 
     let export_stdout = exporter.stdout.take().ok_or_else(|| {
-        CraneError::FastExport(
-            "failed to capture fast-export stdout".to_string(),
-        )
+        CraneError::FastExport("failed to capture fast-export stdout".to_string())
     })?;
-    let import_stdin = importer.stdin.take().ok_or_else(|| {
-        CraneError::FastExport("failed to open fast-import stdin".to_string())
-    })?;
+    let import_stdin = importer
+        .stdin
+        .take()
+        .ok_or_else(|| CraneError::FastExport("failed to open fast-import stdin".to_string()))?;
 
     let stats = transform_export(
         BufReader::new(export_stdout),

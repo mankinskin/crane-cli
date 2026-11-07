@@ -1,10 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{
-    Args,
-    Parser,
-    Subcommand,
-};
+use clap::{Args, Parser, Subcommand};
 
 use crate::CraneError;
 
@@ -94,12 +90,9 @@ pub fn normalize_path(raw: &str) -> String {
         .to_string()
 }
 
-pub fn validate_mappings(
-    mappings: &[PathMapping]
-) -> Result<Vec<PathMapping>, CraneError> {
+pub fn validate_mappings(mappings: &[PathMapping]) -> Result<Vec<PathMapping>, CraneError> {
     let mut normalized = mappings.to_vec();
-    normalized
-        .sort_by(|left, right| right.source.len().cmp(&left.source.len()));
+    normalized.sort_by_key(|mapping| std::cmp::Reverse(mapping.source.len()));
 
     for (index, left) in normalized.iter().enumerate() {
         for right in normalized.iter().skip(index + 1) {
@@ -120,10 +113,7 @@ pub fn validate_mappings(
             if path_scopes_overlap(&left.destination, &right.destination) {
                 return Err(CraneError::BadRequest(format!(
                     "overlapping destination mappings are not supported: `{}={}` and `{}={}`",
-                    left.source,
-                    left.destination,
-                    right.source,
-                    right.destination
+                    left.source, left.destination, right.source, right.destination
                 )));
             }
         }
@@ -132,10 +122,7 @@ pub fn validate_mappings(
     Ok(normalized)
 }
 
-fn path_scopes_overlap(
-    left: &str,
-    right: &str,
-) -> bool {
+fn path_scopes_overlap(left: &str, right: &str) -> bool {
     if left.is_empty() || right.is_empty() {
         return true;
     }
@@ -143,10 +130,7 @@ fn path_scopes_overlap(
     is_path_prefix(left, right) || is_path_prefix(right, left)
 }
 
-fn is_path_prefix(
-    parent: &str,
-    child: &str,
-) -> bool {
+fn is_path_prefix(parent: &str, child: &str) -> bool {
     child == parent
         || child
             .strip_prefix(parent)

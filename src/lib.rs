@@ -6,21 +6,10 @@ mod transplant;
 #[cfg(test)]
 mod tests;
 
-pub use cli::{
-    CraneCli,
-    CraneCommand,
-    PathMapping,
-    TransplantArgs,
-};
-pub use transplant::{
-    TransplantOutcome,
-    execute,
-};
+pub use cli::{CraneCli, CraneCommand, PathMapping, TransplantArgs};
+pub use transplant::{TransplantOutcome, execute};
 
-use std::{
-    path::PathBuf,
-    string::FromUtf8Error,
-};
+use std::{path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 
@@ -32,9 +21,7 @@ pub enum CraneError {
     MissingPathHistory(String),
     #[error("target repository is not clean: {0}")]
     DirtyTargetRepo(PathBuf),
-    #[error(
-        "git command failed in {cwd}: `{command}` (status: {status:?}) {stderr}"
-    )]
+    #[error("git command failed in {cwd}: `{command}` (status: {status:?}) {stderr}")]
     CommandFailed {
         cwd: PathBuf,
         command: String,
@@ -54,7 +41,7 @@ pub fn run(cli: CraneCli) -> Result<String, CraneError> {
         CraneCommand::Transplant(args) => {
             let outcome = transplant::execute(args)?;
             Ok(render_outcome(&outcome))
-        },
+        }
     }
 }
 

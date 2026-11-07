@@ -10,12 +10,16 @@ Use `crane` when you need to preserve commit history for a narrow set of paths, 
 
 ## Usage
 
-Build or run from the root workspace:
+Build or run from this repository root:
 
 ```bash
-cargo build -p crane-cli --bin crane
-cargo run -p crane-cli --bin crane -- transplant --help
+cargo build --locked --bin crane
+cargo run --locked --bin crane -- transplant --help
 ```
+
+See [INSTALL.md](INSTALL.md) for prerequisites and installation, and
+[CONTRIBUTING.md](CONTRIBUTING.md) for validation and contribution guidance.
+The package remains `crane-cli`; the installed executable is `crane`.
 
 ## Branch-root rewrites
 
@@ -40,7 +44,7 @@ Before using `crane` for a production migration:
 1. Run the focused crate tests.
 
 ```bash
-cargo test -p crane-cli
+cargo test --locked
 ```
 
 2. Run a real dry run against the intended source and target repositories.
@@ -70,3 +74,23 @@ Review the dry-run output before any live import. The required review metadata i
 - each emitted `mapping=<source>=<destination>` line
 
 3. Only after the dry-run metadata looks correct should you run the live transplant and inspect the target repository history and cleanliness.
+
+For an already relocated or deleted source tree, set `--source-ref` to the
+last revision containing it. No source checkout change is needed. A dry run
+reports planning metadata only; it does not execute the export/import or prove
+that the target can merge cleanly. Use `--no-merge` for a live import into a
+review branch before merging it yourself. Live imports require a clean target
+and replace an existing import ref, so choose a dedicated branch.
+
+## Repository history
+
+This repository preserves its original placeholder history and seven filtered
+development commits from `context-engine`, mapping `tools/cli/crane-cli` to the
+repository root. The imported source tip was
+[`d586648b3160d0587683a2fea8fee14b38354836`](https://github.com/mankinskin/context-engine/commit/d586648b3160d0587683a2fea8fee14b38354836),
+before the October 17, 2026 source removal. All nine imported files were
+verified against the original Git blobs before standalone changes.
+
+The October relocation into `workflow-tools` was a byte-identical copy, not
+the original development history. `workflow-tools` now consumes this
+repository as a submodule; it no longer owns a second tracked copy.

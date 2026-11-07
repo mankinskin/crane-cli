@@ -1,13 +1,6 @@
-use std::io::{
-    self,
-    BufRead,
-    Write,
-};
+use std::io::{self, BufRead, Write};
 
-use crate::{
-    CraneError,
-    PathMapping,
-};
+use crate::{CraneError, PathMapping};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct TransformStats {
@@ -45,12 +38,7 @@ where
             writer
                 .write_all(format!("commit {import_ref}\n").as_bytes())
                 .map_err(CraneError::Io)?;
-            transform_commit_body(
-                &mut reader,
-                &mut writer,
-                mappings,
-                &mut stats,
-            )?;
+            transform_commit_body(&mut reader, &mut writer, mappings, &mut stats)?;
             continue;
         }
 
@@ -74,10 +62,7 @@ where
     Ok(stats)
 }
 
-fn copy_blob_body<R, W>(
-    reader: &mut R,
-    writer: &mut W,
-) -> Result<(), CraneError>
+fn copy_blob_body<R, W>(reader: &mut R, writer: &mut W) -> Result<(), CraneError>
 where
     R: BufRead,
     W: Write,
@@ -136,10 +121,7 @@ where
     }
 }
 
-fn copy_reset_body<R, W>(
-    reader: &mut R,
-    writer: &mut W,
-) -> Result<(), CraneError>
+fn copy_reset_body<R, W>(reader: &mut R, writer: &mut W) -> Result<(), CraneError>
 where
     R: BufRead,
     W: Write,
@@ -181,9 +163,7 @@ fn rewrite_file_op(
     stats: &mut TransformStats,
 ) -> Result<Option<String>, CraneError> {
     let raw = std::str::from_utf8(line).map_err(|error| {
-        CraneError::FastExport(format!(
-            "fast-export line is not utf-8: {error}"
-        ))
+        CraneError::FastExport(format!("fast-export line is not utf-8: {error}"))
     })?;
     let trimmed = raw.trim_end_matches('\n');
 
@@ -200,11 +180,11 @@ fn rewrite_file_op(
             Some(mapped) => {
                 stats.rewritten_ops += 1;
                 return Ok(Some(format!("M {mode} {data_ref} {mapped}\n")));
-            },
+            }
             None => {
                 stats.dropped_ops += 1;
                 return Ok(None);
-            },
+            }
         }
     }
 
@@ -213,11 +193,11 @@ fn rewrite_file_op(
             Some(mapped) => {
                 stats.rewritten_ops += 1;
                 return Ok(Some(format!("D {mapped}\n")));
-            },
+            }
             None => {
                 stats.dropped_ops += 1;
                 return Ok(None);
-            },
+            }
         }
     }
 
@@ -259,10 +239,7 @@ fn malformed_op(raw: &str) -> CraneError {
     CraneError::FastExport(format!("unsupported fast-export file op: {raw}"))
 }
 
-pub fn remap_path(
-    path: &str,
-    mappings: &[PathMapping],
-) -> Option<String> {
+pub fn remap_path(path: &str, mappings: &[PathMapping]) -> Option<String> {
     for mapping in mappings {
         if path == mapping.source {
             return Some(remap_exact_path(path, mapping));
@@ -276,10 +253,7 @@ pub fn remap_path(
     None
 }
 
-fn remap_exact_path(
-    path: &str,
-    mapping: &PathMapping,
-) -> String {
+fn remap_exact_path(path: &str, mapping: &PathMapping) -> String {
     if !mapping.destination.is_empty() {
         return mapping.destination.clone();
     }
@@ -287,10 +261,7 @@ fn remap_exact_path(
     path.rsplit('/').next().unwrap_or(path).to_string()
 }
 
-fn join_mapped_path(
-    destination: &str,
-    suffix: &str,
-) -> String {
+fn join_mapped_path(destination: &str, suffix: &str) -> String {
     let trimmed_suffix = suffix.trim_start_matches('/');
     if destination.is_empty() {
         return trimmed_suffix.to_string();
@@ -304,9 +275,7 @@ fn join_mapped_path(
 
 fn parse_data_len(line: &[u8]) -> Result<Option<usize>, CraneError> {
     let raw = std::str::from_utf8(line).map_err(|error| {
-        CraneError::FastExport(format!(
-            "fast-export line is not utf-8: {error}"
-        ))
+        CraneError::FastExport(format!("fast-export line is not utf-8: {error}"))
     })?;
     let Some(rest) = raw.strip_prefix("data ") else {
         return Ok(None);
@@ -322,11 +291,7 @@ fn parse_data_len(line: &[u8]) -> Result<Option<usize>, CraneError> {
         })
 }
 
-fn copy_exact<R, W>(
-    reader: &mut R,
-    writer: &mut W,
-    len: usize,
-) -> Result<(), CraneError>
+fn copy_exact<R, W>(reader: &mut R, writer: &mut W, len: usize) -> Result<(), CraneError>
 where
     R: BufRead,
     W: Write,
@@ -350,10 +315,7 @@ where
     Ok(())
 }
 
-fn read_line<R>(
-    reader: &mut R,
-    buffer: &mut Vec<u8>,
-) -> Result<bool, CraneError>
+fn read_line<R>(reader: &mut R, buffer: &mut Vec<u8>) -> Result<bool, CraneError>
 where
     R: BufRead,
 {
